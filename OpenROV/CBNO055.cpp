@@ -124,7 +124,7 @@ void CBNO055::Update( CCommand& commandIn )
 			#ifdef BNO_OUTPUT_RAW_ACCEL
 		        if( bno.GetVector( CAdaBNO055::VECTOR_ACCELEROMETER, rawAccel ) )
 		        {	
-		        	Serial.print( "BNO055.RAW_ACCEL:" );
+		        	Serial.print( "RACC:" );
 					Serial.print( rawAccel.x() );
 					Serial.print( '|' );
 					Serial.print( rawAccel.y() );
@@ -138,7 +138,7 @@ void CBNO055::Update( CCommand& commandIn )
 			#ifdef BNO_OUTPUT_RAW_GYRO
 		        if( bno.GetVector( CAdaBNO055::VECTOR_GYROSCOPE, rawGyro ) )
 		        {	
-		        	Serial.print( "BNO055.RAW_GYRO:" );
+		        	Serial.print( "RGYR:" );
 					Serial.print( rawGyro.x() );
 					Serial.print( '|' );
 					Serial.print( rawGyro.y() );
@@ -152,7 +152,7 @@ void CBNO055::Update( CCommand& commandIn )
 			#ifdef BNO_OUTPUT_RAW_LINEAR_ACCEL
 		        if( bno.GetVector( CAdaBNO055::VECTOR_LINEARACCEL, rawLinearAccel ) )
 		        {	
-		        	Serial.print( "BNO055.RAW_LINEAR_ACCEL:" );
+		        	Serial.print( "RLACC:" );
 					Serial.print( rawLinearAccel.x() );
 					Serial.print( '|' );
 					Serial.print( rawLinearAccel.y() );
@@ -174,7 +174,7 @@ void CBNO055::Update( CCommand& commandIn )
 				// Get raw mag data - Note this will output 0s if in IMU mode, since the mag is turned off
 				if( bno.GetVector( CAdaBNO055::VECTOR_MAGNETOMETER, rawMag ) )
 				{	
-					Serial.print( "BNO055.RAW_MAG:" );
+					Serial.print( "RMAG:" );
 					Serial.print( rawMag.x() );
 					Serial.print( '|' );
 					Serial.print( rawMag.y() );
