@@ -21,7 +21,7 @@ namespace
 	bool inFusionMode			= false;
 	bool waitingToSwitch		= false;
 
-	bool inOverride				= false;
+	bool modeSwitchingEnabled	= true;
 
 	CAdaBNO055 bno;
 
@@ -306,7 +306,8 @@ void CBNO055::Update( CCommand& commandIn )
 			NDataManager::m_navData.ROLL	= -euler.y();
         }
 
-		if( inOverride )
+	
+		if( !modeSwitchingEnabled )
 		{
 			// Temp - Do nothing!
 		}
