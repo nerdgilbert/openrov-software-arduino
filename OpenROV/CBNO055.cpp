@@ -13,6 +13,7 @@ namespace
 	CTimer imuTimer;
 	CTimer fusionTimer;
 	CTimer rawTimer;
+	CTimer rawMagTimer;
 
 	bool initalized				= false;
 	bool browserPingReceived	= false;
@@ -68,6 +69,8 @@ void CBNO055::Initialize()
 	report_timer.Reset();
 	imuTimer.Reset();
 	fusionTimer.Reset();
+	rawTimer.Reset();
+	rawMagTimer.Reset();
 }
 
 void CBNO055::Update( CCommand& commandIn )
@@ -112,14 +115,13 @@ void CBNO055::Update( CCommand& commandIn )
 	}
 
 	
-	// Handle raw data outputs first at 100hz
+	// Handle raw linear and accel gyro data outputs at 100hz
 	if( rawTimer.HasElapsed( 10 ) )
 	{
 		if( initalized )
 		{
 			// Raw accelerometer data
 			#ifdef BNO_OUTPUT_RAW_ACCEL
-				// Get orientation data
 		        if( bno.GetVector( CAdaBNO055::VECTOR_ACCELEROMETER, rawAccel ) )
 		        {	
 		        	Serial.print( "BNO055.RAW_ACCEL:" );
@@ -134,7 +136,6 @@ void CBNO055::Update( CCommand& commandIn )
 			
 			// Raw gyro data
 			#ifdef BNO_OUTPUT_RAW_GYRO
-				// Get orientation data
 		        if( bno.GetVector( CAdaBNO055::VECTOR_GYROSCOPE, rawGyro ) )
 		        {	
 		        	Serial.print( "BNO055.RAW_GYRO:" );
@@ -147,24 +148,8 @@ void CBNO055::Update( CCommand& commandIn )
 				}
 			#endif
 			
-			// Raw mag data - Note this will output 0s if in IMU mode, since the mag is turned off
-			#ifdef BNO_OUTPUT_RAW_MAG
-				// Get orientation data
-		        if( bno.GetVector( CAdaBNO055::VECTOR_MAGNETOMETER, rawMag ) )
-		        {	
-		        	Serial.print( "BNO055.RAW_MAG:" );
-					Serial.print( rawMag.x() );
-					Serial.print( '|' );
-					Serial.print( rawMag.y() );
-					Serial.print( '|' );
-					Serial.print( rawMag.z() );
-					Serial.println( ';' );
-				}
-			#endif
-			
 			// Linear accel data - Note only available in fusion mode. 0s in IMU mode.
 			#ifdef BNO_OUTPUT_RAW_LINEAR_ACCEL
-				// Get orientation data
 		        if( bno.GetVector( CAdaBNO055::VECTOR_LINEARACCEL, rawLinearAccel ) )
 		        {	
 		        	Serial.print( "BNO055.RAW_LINEAR_ACCEL:" );
@@ -178,6 +163,29 @@ void CBNO055::Update( CCommand& commandIn )
 			#endif
 		}
 	}
+	
+	
+	#ifdef BNO_OUTPUT_RAW_MAG		
+		// Handle raw mag data outputs at 20hz
+		if( rawMagTimer.HasElapsed( 50 ) )
+		{
+			if( initalized )
+			{
+				// Get raw mag data - Note this will output 0s if in IMU mode, since the mag is turned off
+				if( bno.GetVector( CAdaBNO055::VECTOR_MAGNETOMETER, rawMag ) )
+				{	
+					Serial.print( "BNO055.RAW_MAG:" );
+					Serial.print( rawMag.x() );
+					Serial.print( '|' );
+					Serial.print( rawMag.y() );
+					Serial.print( '|' );
+					Serial.print( rawMag.z() );
+					Serial.println( ';' );
+				}
+				
+			}
+		}
+	#endif
 	
 
 	// 1000 / 21
