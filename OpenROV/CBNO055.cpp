@@ -12,6 +12,7 @@ namespace
 	CTimer report_timer;
 	CTimer imuTimer;
 	CTimer fusionTimer;
+	CTimer rawTimer;
 
 	bool initalized				= false;
 	bool browserPingReceived	= false;
@@ -24,6 +25,11 @@ namespace
 	CAdaBNO055 bno;
 
 	imu::Vector<3> euler;
+	
+	imu::Vector<3> rawAccel;
+	imu::Vector<3> rawLinearAccel;
+	imu::Vector<3> rawGyro;
+	imu::Vector<3> rawMag;
 
 	void InitializeSensor()
 	{
@@ -104,6 +110,75 @@ void CBNO055::Update( CCommand& commandIn )
 			Serial.println( "log:Can't enter override, IMU is not initialized yet!;" );
 		}
 	}
+
+	
+	// Handle raw data outputs first at 100hz
+	if( rawTimer.HasElapsed( 10 ) )
+	{
+		if( initalized )
+		{
+			// Raw accelerometer data
+			#ifdef BNO_OUTPUT_RAW_ACCEL
+				// Get orientation data
+		        if( bno.GetVector( CAdaBNO055::VECTOR_ACCELEROMETER, rawAccel ) )
+		        {	
+		        	Serial.print( "BNO055.RAW_ACCEL:" );
+					Serial.print( rawAccel.x() );
+					Serial.print( '|' );
+					Serial.print( rawAccel.y() );
+					Serial.print( '|' );
+					Serial.print( rawAccel.z() );
+					Serial.println( ';' );
+				}
+			#endif
+			
+			// Raw gyro data
+			#ifdef BNO_OUTPUT_RAW_GYRO
+				// Get orientation data
+		        if( bno.GetVector( CAdaBNO055::VECTOR_GYROSCOPE, rawGyro ) )
+		        {	
+		        	Serial.print( "BNO055.RAW_GYRO:" );
+					Serial.print( rawGyro.x() );
+					Serial.print( '|' );
+					Serial.print( rawGyro.y() );
+					Serial.print( '|' );
+					Serial.print( rawGyro.z() );
+					Serial.println( ';' );
+				}
+			#endif
+			
+			// Raw mag data - Note this will output 0s if in IMU mode, since the mag is turned off
+			#ifdef BNO_OUTPUT_RAW_MAG
+				// Get orientation data
+		        if( bno.GetVector( CAdaBNO055::VECTOR_MAGNETOMETER, rawMag ) )
+		        {	
+		        	Serial.print( "BNO055.RAW_MAG:" );
+					Serial.print( rawMag.x() );
+					Serial.print( '|' );
+					Serial.print( rawMag.y() );
+					Serial.print( '|' );
+					Serial.print( rawMag.z() );
+					Serial.println( ';' );
+				}
+			#endif
+			
+			// Linear accel data - Note only available in fusion mode. 0s in IMU mode.
+			#ifdef BNO_OUTPUT_RAW_LINEAR_ACCEL
+				// Get orientation data
+		        if( bno.GetVector( CAdaBNO055::VECTOR_LINEARACCEL, rawLinearAccel ) )
+		        {	
+		        	Serial.print( "BNO055.RAW_LINEAR_ACCEL:" );
+					Serial.print( rawLinearAccel.x() );
+					Serial.print( '|' );
+					Serial.print( rawLinearAccel.y() );
+					Serial.print( '|' );
+					Serial.print( rawLinearAccel.z() );
+					Serial.println( ';' );
+				}
+			#endif
+		}
+	}
+	
 
 	// 1000 / 21
 	if( bno055_sample_timer.HasElapsed( 47 ) )
