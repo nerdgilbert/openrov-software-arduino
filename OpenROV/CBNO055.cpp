@@ -88,7 +88,7 @@ void CBNO055::Update( CCommand& commandIn )
 			if( commandIn.m_arguments[ 1 ] == 0 )
 			{
 				// Turn off override
-				inOverride		= false;
+				modeSwitchingEnabled		= false;
 				inFusionMode	= true;
 				bno.EnterNDOFMode();
 
@@ -97,14 +97,14 @@ void CBNO055::Update( CCommand& commandIn )
 			if( commandIn.m_arguments[ 1 ] == 12 )
 			{
 				// Override to NDOF
-				inOverride = true;
+				modeSwitchingEnabled = true;
 				bno.EnterNDOFMode();
 			}
 
 			if( commandIn.m_arguments[ 1 ] == 8 )
 			{
 				// Override to IMU mode
-				inOverride = true;
+				modeSwitchingEnabled = true;
 				bno.EnterIMUMode();
 			}
 		}
