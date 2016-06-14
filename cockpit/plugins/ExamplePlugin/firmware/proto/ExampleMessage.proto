@@ -1,0 +1,37 @@
+syntax = "proto2";
+
+
+message IntMessage 
+{
+    required int32 x = 1;
+    required int32 y = 2;
+    required int32 z = 3;
+}
+
+message FloatMessage 
+{
+    required float value = 1;
+}
+
+message BoolMessage
+{
+    required bool value = 1;
+}
+
+message StringMessage
+{
+    required string value = 1;
+}
+
+message ExampleMessage
+{
+    required uint32 messageType = 1;
+
+    oneof payload 
+    {
+        IntMessage intMsg = 2;
+        FloatMessage floatMsg = 3;
+        BoolMessage boolMsg = 4;
+        StringMessage stringMsg = 5;
+    }
+}
