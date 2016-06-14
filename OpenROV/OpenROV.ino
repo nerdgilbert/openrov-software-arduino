@@ -1,6 +1,6 @@
 #include "pb_encode.h"
 #include "pb_decode.h"
-#include "ExampleMessage.pb.h"
+#include "Master.pb.h"
 
 
 void setup()
@@ -46,7 +46,6 @@ void loop()
         {
             //printf("Encoding failed: %s\n", PB_GET_ERROR(&stream));
             Serial.println("Encoding failed!");
-            return 1;
         }
     }
     
@@ -71,7 +70,6 @@ void loop()
         {
             //printf("Decoding failed: %s\n", PB_GET_ERROR(&stream));
             Serial.println("Decoding failed.");
-            return 1;
         }
         
         /* Print the data contained in the message. */

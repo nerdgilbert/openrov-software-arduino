@@ -13,7 +13,7 @@ build_dir = "mktemp/"
 firmware_source_dir = "../OpenROV"
 plugin_source_dir = "../cockpit/"
 nanopb_dir = "../libs/nanopb/"
-
+nanopb_compiler = os.path.join(nanopb_dir, "generator/protoc-gen-nanopb")
 master_proto_filename = "Master.proto"
 
 arduino_firmware_prefix = "ArduinoPlugin_"
@@ -33,6 +33,7 @@ class DebugStatus:
     INFO = ConsoleColors.OKGREEN + "[INFO]"
     FATAL_ERROR = ConsoleColors.FAIL + "[FATAL_ERROR]"
     WARNING = ConsoleColors.WARNING + "[WARNING]"
+
 
 
 #Helper functions
@@ -149,6 +150,8 @@ def stage_plugin_files():
     """
         Copies the plugin source files to the build directory to build
 
+        TODO: This function is too long. Break into sub functions
+
         @:return:
     """
     arduino_plugins = []
@@ -197,13 +200,22 @@ def stage_plugin_files():
         plugin_header_file.write("%s \n" % plugin_header_guards[2])
     plugin_header_file.close()
 
-def add_protofile_to_master(protofile):
+def add_protofile_to_master(protofile, dest_file):
     """
         Adds the contents to a proto file to the master for one compilation step
 
         @type protofile: string
         @param protofile: The fullpath to the protofile
     """
+    with open(protofile) as protofile:
+        with open(dest_file, "a") as master:
+            master.write("\n")
+            for line in protofile:
+                if not "syntax" in line:
+                    master.write(line)
+        master.close()
+    protofile.close()
+
 
 def stage_proto_files():
     """
@@ -223,7 +235,7 @@ def stage_proto_files():
 
     #Create the master proto file
     with open(generated_dir_path + master_proto_filename, "a") as master:
-        master.write("syntax = \"proto2\"")
+        master.write("syntax = \"proto2\";")
     master.close()
 
     #Search the proto file directory for proto files. Get a list.
@@ -232,14 +244,47 @@ def stage_proto_files():
             if file.endswith(".proto"):
                 print_status(DebugStatus.INFO, "Found proto file: %s " % file)
                 #Write the contents of the file to the master proto file
-                with open(os.path.join(parent_dir, file)) as protofile:
-                    with open(generated_dir_path + master_proto_filename, "w") as master:
-                        master.write("\n")
-                        for line in protofile:
-                            if not "syntax" in line:
-                                master.write(line)
-                    master.close()
-                protofile.close()
+                add_protofile_to_master(os.path.join(parent_dir, file), generated_dir_path + master_proto_filename)
+    print_status(DebugStatus.INFO, "Done adding proto files to master")
+
+def compile_proto_files():
+    """
+        Compiles the proto files using the nanopb compiler
+
+        @:return:
+    """
+    print_status(DebugStatus.INFO, "Compiling Master.proto...")
+
+    #Build vars
+    #NOTE: Need to go up two levels to get to the nanopb compiler for this MVP script
+    protoc_plugin_arg = "--plugin=protoc-gen-nanopb=" + "../../" + nanopb_compiler
+    protoc_output_directives = "--nanopb_out=./"
+
+    compile_process = subprocess.Popen(["protoc", protoc_plugin_arg, protoc_output_directives, master_proto_filename], cwd=build_dir + "generated/")
+
+    #Wait for this process to finish to continue
+    compile_process.communicate()
+    print_status(DebugStatus.INFO, "Finished compiling proto file.")
+
+    #Copy the generated implementation and header file out and into the src directory
+    print_status(DebugStatus.INFO, "Copying the compiled proto files to be staged")
+    generated_dir = build_dir + "generated/"
+    for file in os.listdir(generated_dir):
+        if not file.endswith(".proto"):
+            shutil.copy(os.path.join(generated_dir, file), build_dir + "src/")
+
+def build_firmware():
+    """
+        Builds the firmware for upload to the arduino using ino
+
+        @:return:
+    """
+    print_status(DebugStatus.INFO, "Starting final build step")
+
+    board = "mega2560"
+
+    build_process = subprocess.Popen(["ino", "build", "-m" + board], cwd=build_dir)
+    build_process.communicate()
 
 
 def main(argv):
@@ -261,8 +306,10 @@ def main(argv):
     stage_proto_files()
 
     #Compile the master proto file and move it to the source directory
+    compile_proto_files()
 
     #And then build the whole project
+    build_firmware()
 
 
 if __name__ == '__main__':
